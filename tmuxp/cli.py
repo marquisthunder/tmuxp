@@ -373,65 +373,28 @@ def command_freeze(session_name, socket_name, socket_path):
     configparser = kaptan.Kaptan()
     newconfig = config.inline(sconf)
     configparser.import_config(newconfig)
-    config_format = click.prompt(
-        'Convert to',
-        value_proc=_validate_choices(['yaml', 'json']),
-        default='yaml'
-    )
-
-    if config_format == 'yaml':
-        newconfig = configparser.export(
+    config_format = "yaml"
+    newconfig = configparser.export(
             'yaml', indent=2, default_flow_style=False, safe=True
-        )
-    elif config_format == 'json':
-        newconfig = configparser.export('json', indent=2)
-    else:
-        sys.exit('Unknown config format.')
-
-    print(newconfig)
-    print(
-        '---------------------------------------------------------------'
-        '\n'
-        'Freeze does it best to snapshot live tmux sessions.\n'
     )
-    if click.confirm(
-        'The new config *WILL* require adjusting afterwards. Save config?'
-    ):
-        dest = None
-        while not dest:
-            save_to = os.path.abspath(
-                os.path.join(
-                    get_config_dir(),
-                    '%s.%s' % (sconf.get('session_name'), config_format)
-                )
-            )
-            dest_prompt = click.prompt(
-                'Save to: %s' %
-                save_to, value_proc=get_abs_path,
-                default=save_to, confirmation_prompt=True)
-            if os.path.exists(dest_prompt):
-                print('%s exists. Pick a new filename.' % dest_prompt)
-                continue
 
-            dest = dest_prompt
-
-        dest = os.path.abspath(os.path.relpath(os.path.expanduser(dest)))
-        if click.confirm('Save to %s?' % dest):
-            destdir = os.path.dirname(dest)
-            if not os.path.isdir(destdir):
-                os.makedirs(destdir)
-            buf = open(dest, 'w')
-            buf.write(newconfig)
-            buf.close()
-
-            print('Saved to %s.' % dest)
-    else:
-        print(
-            'tmuxp has examples in JSON and YAML format at '
-            '<http://tmuxp.readthedocs.io/en/latest/examples.html>\n'
-            'View tmuxp docs at <http://tmuxp.readthedocs.io/>.'
+    save_to = os.path.abspath(
+        os.path.join(
+            get_config_dir(),
+            '%s.%s' % (sconf.get('session_name'), config_format)
         )
-        sys.exit()
+    )
+    dest_prompt = save_to
+    dest = dest_prompt
+    dest = os.path.abspath(os.path.relpath(os.path.expanduser(dest)))
+    destdir = os.path.dirname(dest)
+    if not os.path.isdir(destdir):
+        os.makedirs(destdir)
+    buf = open(dest, 'w')
+    buf.write(newconfig)
+    buf.close()
+
+    print('Saved to %s.' % dest)
 
 
 @cli.command(name='load')
